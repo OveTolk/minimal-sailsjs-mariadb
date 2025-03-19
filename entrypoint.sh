@@ -1,32 +1,28 @@
 #!/bin/bash
+set -e
 
-# Erstelle benötigte Verzeichnisse und Dateien, falls sie nicht existieren
-mkdir -p mysql-init
-mkdir -p sails-app/api/controllers
-mkdir -p sails-app/api/models
-mkdir -p sails-app/config
+echo "Installiere globale Abhängigkeiten (sails, pm2)..."
+npm install -g sails pm2
 
-# Erstelle die SQL-Datei für die Standarddatenbank
-cat <<EOL > mysql-init/init.sql
--- init.sql Beispielinhalt für Standarddatenbank --
-CREATE TABLE IF NOT EXISTS standard (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    message TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-EOL
+# Falls noch kein Sails-Projekt existiert, erstelle ein neues (ohne Frontend, da wir nur die API nutzen)
+if [ ! -f package.json ]; then
+  echo "Kein package.json gefunden – erstelle neues Sails-Projekt..."
+  sails new . --no-frontend --force
+fi
 
-# Erstelle das Standard Sails Model falls nicht vorhanden
-if [ ! -f sails-app/api/models/Standard.js ]; then
-cat <<EOL > sails-app/api/models/Standard.js
+# Erstelle bzw. überschreibe unsere Custom-Dateien in den richtigen Verzeichnissen
+
+# Stelle sicher, dass die Verzeichnisse existieren
+mkdir -p api/controllers api/models config
+
+# Standard Model
+if [ ! -f api/models/Standard.js ]; then
+cat <<'EOF' > api/models/Standard.js
 /**
  * Standard.js
  *
  * @description :: Modell für die Standarddatenbank.
  */
-
 module.exports = {
   attributes: {
     name: {
@@ -39,18 +35,17 @@ module.exports = {
     // createdAt und updatedAt werden automatisch von Sails verwaltet.
   }
 };
-EOL
+EOF
 fi
 
-# Erstelle den Standard Controller für CRUD Befehle falls nicht vorhanden
-if [ ! -f sails-app/api/controllers/StandardController.js ]; then
-cat <<EOL > sails-app/api/controllers/StandardController.js
+# Standard Controller für CRUD
+if [ ! -f api/controllers/StandardController.js ]; then
+cat <<'EOF' > api/controllers/StandardController.js
 /**
  * StandardController.js
  *
  * @description :: Controller für CRUD Operationen auf der Standarddatenbank.
  */
-
 module.exports = {
 
   // CREATE: Neuen Datensatz anlegen
@@ -106,11 +101,11 @@ module.exports = {
     }
   }
 };
-EOL
+EOF
 fi
 
-# Erstelle oder aktualisiere die Routen
-cat <<EOL > sails-app/config/routes.js
+# Routen-Konfiguration
+cat <<'EOF' > config/routes.js
 module.exports.routes = {
   'GET /': 'DefaultController.index',
   'POST /standard': 'StandardController.create',
@@ -119,12 +114,10 @@ module.exports.routes = {
   'PUT /standard/:id': 'StandardController.update',
   'DELETE /standard/:id': 'StandardController.destroy'
 };
-EOL
+EOF
 
-# Falls eine README.md nicht existiert, lege eine an
-if [ ! -f sails-app/README.md ]; then
-    echo "# Sails.js Projekt" > sails-app/README.md
-    echo "Dieses Projekt verwendet Docker mit Sails.js und MariaDB." >> sails-app/README.md
-fi
+echo "Abhängigkeiten werden installiert..."
+npm install
 
-echo "Alle benötigten Dateien und Ordner wurden erstellt und angepasst!"
+echo "Starte Sails.js über PM2..."
+pm2-runtime start app.js

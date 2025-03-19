@@ -23,12 +23,10 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./sails-app:/usr/src/app
+      - ./entrypoint.sh:/usr/src/app/entrypoint.sh 
     ports:
       - "1337:1337"
-    command: >
-      sh -c "npm install -g sails pm2 &&
-             npm install &&
-             pm2-runtime start app.js"
+    command: sh /usr/src/app/entrypoint.sh
     depends_on:
       - mariadb
     networks:
