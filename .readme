@@ -1,3 +1,0 @@
-Führe es vor dem Start von Docker aus
-./init.sh
-docker-compose up -d
