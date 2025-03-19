@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecurepassword
+      MYSQL_DATABASE: sailsdb
+      MYSQL_USER: sailsuser
+      MYSQL_PASSWORD: sailspassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - sailsnetwork
+
+  sailsjs:
+    image: node:18
+    container_name: sailsjs_container
+    restart: always
+    working_dir: /usr/src/app
+    volumes:
+      - ./sails-app:/usr/src/app
+    ports:
+      - "1337:1337"
+    command: >
+      sh -c "npm install -g sails pm2 &&
+             npm install &&
+             pm2-runtime start app.js"
+    depends_on:
+      - mariadb
+    networks:
+      - sailsnetwork
+
+volumes:
+  mysql-data:
+    driver: local
+
+networks:
+  sailsnetwork:
+    driver: bridge
