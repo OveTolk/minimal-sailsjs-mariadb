@@ -10,10 +10,12 @@ if [ ! -f package.json ]; then
   sails new . --no-frontend --force
 fi
 
-# Erstelle bzw. überschreibe unsere Custom-Dateien in den richtigen Verzeichnissen
+# Installiere den MySQL-Adapter
+echo "Installiere sails-mysql..."
+npm install sails-mysql --save --save-exact
 
 # Stelle sicher, dass die Verzeichnisse existieren
-mkdir -p api/controllers api/models config
+mkdir -p api/controllers api/models config config/env
 
 # Standard Model
 if [ ! -f api/models/Standard.js ]; then
@@ -115,6 +117,35 @@ module.exports.routes = {
   'DELETE /standard/:id': 'StandardController.destroy'
 };
 EOF
+
+# Konfiguration des Datenbankzugriffs für Entwicklung (datastores.js)
+if [ ! -f config/datastores.js ]; then
+  cat <<'EOF' > config/datastores.js
+module.exports.datastores = {
+  default: {
+    adapter: require('sails-mysql'),
+    url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
+  }
+};
+EOF
+fi
+
+# Produktions-spezifische Konfiguration (config/env/production.js)
+if [ ! -f config/env/production.js ]; then
+  cat <<'EOF' > config/env/production.js
+module.exports = {
+  models: {
+    // In Produktion sollte der Migrationsmodus "safe" sein.
+    migrate: 'safe'
+  },
+  datastores: {
+    default: {
+      url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
+    }
+  }
+};
+EOF
+fi
 
 echo "Abhängigkeiten werden installiert..."
 npm install

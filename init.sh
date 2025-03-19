@@ -1,24 +1,11 @@
 #!/bin/bash
 
-# Erstelle benötigte Verzeichnisse und Dateien, falls sie nicht existieren
-mkdir -p mysql-init
+# Erstelle benötigte Verzeichnisse
 mkdir -p sails-app/api/controllers
 mkdir -p sails-app/api/models
 mkdir -p sails-app/config
 
-# Erstelle die SQL-Datei für die Standarddatenbank
-cat <<EOL > mysql-init/init.sql
--- init.sql Beispielinhalt für Standarddatenbank --
-CREATE TABLE IF NOT EXISTS standard (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    message TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-EOL
-
-# Erstelle das Standard Sails Model falls nicht vorhanden
+# Standard Model
 if [ ! -f sails-app/api/models/Standard.js ]; then
 cat <<EOL > sails-app/api/models/Standard.js
 /**
@@ -26,7 +13,6 @@ cat <<EOL > sails-app/api/models/Standard.js
  *
  * @description :: Modell für die Standarddatenbank.
  */
-
 module.exports = {
   attributes: {
     name: {
@@ -42,7 +28,7 @@ module.exports = {
 EOL
 fi
 
-# Erstelle den Standard Controller für CRUD Befehle falls nicht vorhanden
+# Standard Controller für CRUD
 if [ ! -f sails-app/api/controllers/StandardController.js ]; then
 cat <<EOL > sails-app/api/controllers/StandardController.js
 /**
@@ -50,7 +36,6 @@ cat <<EOL > sails-app/api/controllers/StandardController.js
  *
  * @description :: Controller für CRUD Operationen auf der Standarddatenbank.
  */
-
 module.exports = {
 
   // CREATE: Neuen Datensatz anlegen
@@ -109,7 +94,7 @@ module.exports = {
 EOL
 fi
 
-# Erstelle oder aktualisiere die Routen
+# Routen-Konfiguration
 cat <<EOL > sails-app/config/routes.js
 module.exports.routes = {
   'GET /': 'DefaultController.index',
@@ -121,10 +106,10 @@ module.exports.routes = {
 };
 EOL
 
-# Falls eine README.md nicht existiert, lege eine an
+# README falls nicht vorhanden
 if [ ! -f sails-app/README.md ]; then
     echo "# Sails.js Projekt" > sails-app/README.md
     echo "Dieses Projekt verwendet Docker mit Sails.js und MariaDB." >> sails-app/README.md
 fi
 
-echo "Alle benötigten Dateien und Ordner wurden erstellt und angepasst!"
+echo "Alle benötigten Dateien und Ordner wurden erstellt!"
