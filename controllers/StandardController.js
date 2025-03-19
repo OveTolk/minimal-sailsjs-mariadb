@@ -9,13 +9,13 @@ module.exports = {
     async create(req, res) {
       try {
         const { name, message } = req.body; // Variablen aus dem Request-Body
-  
+        console.log(name, message);
         if (!name) {
           return res.badRequest('Fehlender Parameter: name ist erforderlich.');
         }
   
-        const sql = `INSERT INTO standard (name, message) VALUES (?, ?)`;
-        const result = await sails.getDatastore().sendNativeQuery(sql, [name, message || null]);
+        const sql = `INSERT INTO standard (name, message) VALUES ($1, $2)`;
+        const result = await sails.getDatastore().sendNativeQuery(sql, [name, message]);
   
         return res.json({ id: result.insertId, name, message });
       } catch (err) {
@@ -43,7 +43,7 @@ module.exports = {
           return res.badRequest('Fehlender Parameter: id ist erforderlich.');
         }
   
-        const sql = `SELECT * FROM standard WHERE id = ?`;
+        const sql = `SELECT * FROM standard WHERE id = $1`;
         const result = await sails.getDatastore().sendNativeQuery(sql, [id]);
   
         if (result.rows.length === 0) {
@@ -65,7 +65,7 @@ module.exports = {
           return res.badRequest('Fehlender Parameter: id ist erforderlich.');
         }
   
-        const sql = `UPDATE standard SET name = ?, message = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+        const sql = `UPDATE standard SET name = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3`;
         const result = await sails.getDatastore().sendNativeQuery(sql, [name || null, message || null, id]);
   
         if (result.affectedRows === 0) {
@@ -87,7 +87,7 @@ module.exports = {
           return res.badRequest('Fehlender Parameter: id ist erforderlich.');
         }
   
-        const sql = `DELETE FROM standard WHERE id = ?`;
+        const sql = `DELETE FROM standard WHERE id = $`;
         const result = await sails.getDatastore().sendNativeQuery(sql, [id]);
   
         if (result.affectedRows === 0) {

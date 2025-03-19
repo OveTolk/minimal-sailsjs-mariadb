@@ -24,6 +24,7 @@ services:
     volumes:
       - ./sails-app:/usr/src/app
       - ./controllers:/usr/src/app/api/controllers
+      - ./routes.js:/usr/src/app/config/routes.js
       - ./entrypoint.sh:/usr/src/app/entrypoint.sh
     ports:
       - "1337:1337"
