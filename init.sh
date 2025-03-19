@@ -5,29 +5,6 @@ mkdir -p sails-app/api/controllers
 mkdir -p sails-app/api/models
 mkdir -p sails-app/config
 
-# Standard Model
-if [ ! -f sails-app/api/models/Standard.js ]; then
-cat <<EOL > sails-app/api/models/Standard.js
-/**
- * Standard.js
- *
- * @description :: Modell für die Standarddatenbank.
- */
-module.exports = {
-  attributes: {
-    name: {
-      type: 'string',
-      required: true
-    },
-    message: {
-      type: 'string'
-    }
-    // createdAt und updatedAt werden automatisch von Sails verwaltet.
-  }
-};
-EOL
-fi
-
 # Standard Controller für CRUD
 if [ ! -f sails-app/api/controllers/StandardController.js ]; then
 cat <<EOL > sails-app/api/controllers/StandardController.js
@@ -39,9 +16,9 @@ cat <<EOL > sails-app/api/controllers/StandardController.js
 module.exports = {
 
   // CREATE: Neuen Datensatz anlegen
-  create: async function(req, res) {
+  async create(req, res) {
     try {
-      const data = await Standard.create(req.body).fetch();
+      const data = await create(req.body).fetch();
       return res.json(data);
     } catch (err) {
       return res.serverError(err);
@@ -49,9 +26,9 @@ module.exports = {
   },
 
   // READ: Alle Datensätze abrufen
-  find: async function(req, res) {
+  async find(req, res) {
     try {
-      const data = await Standard.find();
+      const data = await find();
       return res.json(data);
     } catch (err) {
       return res.serverError(err);
@@ -59,9 +36,9 @@ module.exports = {
   },
 
   // READ: Einen Datensatz anhand der ID abrufen
-  findOne: async function(req, res) {
+  async findOne(req, res) {
     try {
-      const data = await Standard.findOne({ id: req.params.id });
+      const data = await findOne({ id: req.params.id });
       if (!data) { return res.notFound('Datensatz nicht gefunden'); }
       return res.json(data);
     } catch (err) {
@@ -70,9 +47,9 @@ module.exports = {
   },
 
   // UPDATE: Einen Datensatz aktualisieren
-  update: async function(req, res) {
+  async update(req, res) {
     try {
-      const data = await Standard.update({ id: req.params.id }).set(req.body).fetch();
+      const data = await update({ id: req.params.id }).set(req.body).fetch();
       if (!data.length) { return res.notFound('Datensatz nicht gefunden'); }
       return res.json(data[0]);
     } catch (err) {
@@ -81,9 +58,9 @@ module.exports = {
   },
 
   // DELETE: Einen Datensatz löschen
-  destroy: async function(req, res) {
+  async delete(req, res) {
     try {
-      const data = await Standard.destroy({ id: req.params.id }).fetch();
+      const data = await destroy({ id: req.params.id }).fetch();
       if (!data.length) { return res.notFound('Datensatz nicht gefunden'); }
       return res.json(data[0]);
     } catch (err) {
@@ -102,14 +79,17 @@ module.exports.routes = {
   'GET /standard': 'StandardController.find',
   'GET /standard/:id': 'StandardController.findOne',
   'PUT /standard/:id': 'StandardController.update',
-  'DELETE /standard/:id': 'StandardController.destroy'
+  'DELETE /standard/:id': 'StandardController.delete'
 };
 EOL
 
-# README falls nicht vorhanden
-if [ ! -f sails-app/README.md ]; then
-    echo "# Sails.js Projekt" > sails-app/README.md
-    echo "Dieses Projekt verwendet Docker mit Sails.js und MariaDB." >> sails-app/README.md
-fi
+# Routen-Konfiguration
+cat <<EOL > sails-app/config/session.js
+module.exports.session = {
+  secret: true
+};
+EOL
+
+
 
 echo "Alle benötigten Dateien und Ordner wurden erstellt!"

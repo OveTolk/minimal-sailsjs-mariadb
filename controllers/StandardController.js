@@ -1,0 +1,103 @@
+/**
+ * StandardController.js
+ *
+ * @description :: Controller für CRUD-Operationen auf der Standarddatenbank ohne Modell.
+ */
+
+module.exports = {
+    // CREATE: Neuen Datensatz anlegen
+    async create(req, res) {
+      try {
+        const { name, message } = req.body; // Variablen aus dem Request-Body
+  
+        if (!name) {
+          return res.badRequest('Fehlender Parameter: name ist erforderlich.');
+        }
+  
+        const sql = `INSERT INTO standard (name, message) VALUES (?, ?)`;
+        const result = await sails.getDatastore().sendNativeQuery(sql, [name, message || null]);
+  
+        return res.json({ id: result.insertId, name, message });
+      } catch (err) {
+        return res.serverError(err);
+      }
+    },
+  
+    // READ: Alle Datensätze abrufen
+    async read(req, res) {
+      try {
+        const sql = `SELECT * FROM standard`;
+        const result = await sails.getDatastore().sendNativeQuery(sql);
+        return res.json(result.rows);
+      } catch (err) {
+        return res.serverError(err);
+      }
+    },
+  
+    // READ: Einen einzelnen Datensatz anhand des Bodys abrufen (statt Query-Parameter)
+    async readOne(req, res) {
+      try {
+        const { id } = req.body; // ID kommt aus dem Body
+  
+        if (!id) {
+          return res.badRequest('Fehlender Parameter: id ist erforderlich.');
+        }
+  
+        const sql = `SELECT * FROM standard WHERE id = ?`;
+        const result = await sails.getDatastore().sendNativeQuery(sql, [id]);
+  
+        if (result.rows.length === 0) {
+          return res.notFound('Datensatz nicht gefunden');
+        }
+  
+        return res.json(result.rows[0]);
+      } catch (err) {
+        return res.serverError(err);
+      }
+    },
+  
+    // UPDATE: Einen Datensatz aktualisieren
+    async update(req, res) {
+      try {
+        const { id, name, message } = req.body; // Variablen aus dem Body
+  
+        if (!id) {
+          return res.badRequest('Fehlender Parameter: id ist erforderlich.');
+        }
+  
+        const sql = `UPDATE standard SET name = ?, message = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+        const result = await sails.getDatastore().sendNativeQuery(sql, [name || null, message || null, id]);
+  
+        if (result.affectedRows === 0) {
+          return res.notFound('Datensatz nicht gefunden');
+        }
+  
+        return res.json({ id, name, message });
+      } catch (err) {
+        return res.serverError(err);
+      }
+    },
+  
+    // DELETE: Einen Datensatz löschen
+    async delete(req, res) {
+      try {
+        const { id } = req.body; // ID kommt aus dem Body
+  
+        if (!id) {
+          return res.badRequest('Fehlender Parameter: id ist erforderlich.');
+        }
+  
+        const sql = `DELETE FROM standard WHERE id = ?`;
+        const result = await sails.getDatastore().sendNativeQuery(sql, [id]);
+  
+        if (result.affectedRows === 0) {
+          return res.notFound('Datensatz nicht gefunden');
+        }
+  
+        return res.json({ message: 'Datensatz erfolgreich gelöscht' });
+      } catch (err) {
+        return res.serverError(err);
+      }
+    }
+  };
+  

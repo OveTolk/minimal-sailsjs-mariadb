@@ -4,7 +4,7 @@ set -e
 echo "Installiere globale Abhängigkeiten (sails, pm2)..."
 npm install -g sails pm2
 
-# Falls noch kein Sails-Projekt existiert, erstelle ein neues (ohne Frontend, da wir nur die API nutzen)
+# Falls noch kein Sails-Projekt existiert, erstelle ein neues (ohne Frontend)
 if [ ! -f package.json ]; then
   echo "Kein package.json gefunden – erstelle neues Sails-Projekt..."
   sails new . --no-frontend --force
@@ -14,125 +14,137 @@ fi
 echo "Installiere sails-mysql..."
 npm install sails-mysql --save --save-exact
 
-# Stelle sicher, dass die Verzeichnisse existieren
+# Erstelle notwendige Verzeichnisse
 mkdir -p api/controllers api/models config config/env
 
-# Standard Model
-if [ ! -f api/models/Standard.js ]; then
-cat <<'EOF' > api/models/Standard.js
-/**
- * Standard.js
- *
- * @description :: Modell für die Standarddatenbank.
- */
-module.exports = {
-  attributes: {
-    name: {
-      type: 'string',
-      required: true
-    },
-    message: {
-      type: 'string'
-    }
-    // createdAt und updatedAt werden automatisch von Sails verwaltet.
-  }
-};
-EOF
-fi
 
-# Standard Controller für CRUD
+# --- Standard Controller ---
 if [ ! -f api/controllers/StandardController.js ]; then
 cat <<'EOF' > api/controllers/StandardController.js
 /**
  * StandardController.js
  *
- * @description :: Controller für CRUD Operationen auf der Standarddatenbank.
+ * @description :: Controller für CRUD-Operationen auf der Standarddatenbank ohne Modell.
  */
-module.exports = {
 
+module.exports = {
   // CREATE: Neuen Datensatz anlegen
-  create: async function(req, res) {
+  async create(req, res) {
     try {
-      const data = await Standard.create(req.body).fetch();
-      return res.json(data);
+      const sql = `INSERT INTO standard SET ?`;
+      const values = req.body;
+
+      const result = await sails.getDatastore().sendNativeQuery(sql, [values]);
+      return res.json({ id: result.insertId, ...values });
     } catch (err) {
       return res.serverError(err);
     }
   },
 
   // READ: Alle Datensätze abrufen
-  find: async function(req, res) {
+  async read(req, res) {
     try {
-      const data = await Standard.find();
-      return res.json(data);
+      const sql = `SELECT * FROM standard`;
+      const result = await sails.getDatastore().sendNativeQuery(sql);
+      return res.json(result.rows);
     } catch (err) {
       return res.serverError(err);
     }
   },
 
   // READ: Einen Datensatz anhand der ID abrufen
-  findOne: async function(req, res) {
+  async readOne(req, res) {
     try {
-      const data = await Standard.findOne({ id: req.params.id });
-      if (!data) { return res.notFound('Datensatz nicht gefunden'); }
-      return res.json(data);
+      const sql = `SELECT * FROM standard WHERE id = ?`;
+      const result = await sails.getDatastore().sendNativeQuery(sql, [req.params.id]);
+
+      if (result.rows.length === 0) {
+        return res.notFound('Datensatz nicht gefunden');
+      }
+
+      return res.json(result.rows[0]);
     } catch (err) {
       return res.serverError(err);
     }
   },
 
   // UPDATE: Einen Datensatz aktualisieren
-  update: async function(req, res) {
+  async update(req, res) {
     try {
-      const data = await Standard.update({ id: req.params.id }).set(req.body).fetch();
-      if (!data.length) { return res.notFound('Datensatz nicht gefunden'); }
-      return res.json(data[0]);
+      const sql = `UPDATE standard SET ? WHERE id = ?`;
+      const values = req.body;
+      const result = await sails.getDatastore().sendNativeQuery(sql, [values, req.params.id]);
+
+      if (result.affectedRows === 0) {
+        return res.notFound('Datensatz nicht gefunden');
+      }
+
+      return res.json({ id: req.params.id, ...values });
     } catch (err) {
       return res.serverError(err);
     }
   },
 
   // DELETE: Einen Datensatz löschen
-  destroy: async function(req, res) {
+  async delete(req, res) {
     try {
-      const data = await Standard.destroy({ id: req.params.id }).fetch();
-      if (!data.length) { return res.notFound('Datensatz nicht gefunden'); }
-      return res.json(data[0]);
+      const sql = `DELETE FROM standard WHERE id = ?`;
+      const result = await sails.getDatastore().sendNativeQuery(sql, [req.params.id]);
+
+      if (result.affectedRows === 0) {
+        return res.notFound('Datensatz nicht gefunden');
+      }
+
+      return res.json({ message: 'Datensatz erfolgreich gelöscht' });
     } catch (err) {
       return res.serverError(err);
     }
   }
 };
+
 EOF
 fi
 
-# Routen-Konfiguration
-cat <<'EOF' > config/routes.js
-module.exports.routes = {
-  'GET /': 'DefaultController.index',
-  'POST /standard': 'StandardController.create',
-  'GET /standard': 'StandardController.find',
-  'GET /standard/:id': 'StandardController.findOne',
-  'PUT /standard/:id': 'StandardController.update',
-  'DELETE /standard/:id': 'StandardController.destroy'
-};
-EOF
-
-# Konfiguration des Datenbankzugriffs für Entwicklung (datastores.js)
-if [ ! -f config/datastores.js ]; then
-  cat <<'EOF' > config/datastores.js
-module.exports.datastores = {
-  default: {
-    adapter: require('sails-mysql'),
-    url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
+# --- Default Controller für die Root-Route ---
+if [ ! -f api/controllers/DefaultController.js ]; then
+cat <<'EOF' > api/controllers/DefaultController.js
+/**
+ * DefaultController.js
+ *
+ * @description :: Einfache Beispielaktion.
+ */
+module.exports = {
+  index: function(req, res) {
+    return res.json({ message: 'Hello, world! Sails.js läuft.' });
   }
 };
 EOF
 fi
 
-# Produktions-spezifische Konfiguration (config/env/production.js)
-if [ ! -f config/env/production.js ]; then
-  cat <<'EOF' > config/env/production.js
+# --- Routen-Konfiguration ---
+cat <<'EOF' > config/routes.js
+module.exports.routes = {
+  'GET /': 'DefaultController.index',
+  'POST /standard': 'StandardController.create',
+  'GET /standard': 'StandardController.read',
+  'GET /standard/:id': 'StandardController.readOne',
+  'PUT /standard/:id': 'StandardController.update',
+  'DELETE /standard/:id': 'StandardController.delete'
+};
+EOF
+
+# --- Datenbank-Konfiguration für Entwicklung ---
+cat <<'EOF' > config/datastores.js
+module.exports.datastores = {
+  default: {
+    adapter: 'sails-mysql',
+    url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
+  }
+};
+EOF
+
+# --- Produktions-Konfiguration ---
+cat <<'EOF' > config/env/production.js
 module.exports = {
   models: {
     // In Produktion sollte der Migrationsmodus "safe" sein.
@@ -140,14 +152,23 @@ module.exports = {
   },
   datastores: {
     default: {
+      adapter: 'sails-mysql',
       url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
     }
   }
 };
 EOF
+
+# --- Session-Konfiguration ---
+if [ ! -f config/session.js ]; then
+cat <<'EOF' > config/session.js
+module.exports.session = {
+  secret: true
+};
+EOF
 fi
 
-echo "Abhängigkeiten werden installiert..."
+echo "Installiere App-Abhängigkeiten..."
 npm install
 
 echo "Starte Sails.js über PM2..."
