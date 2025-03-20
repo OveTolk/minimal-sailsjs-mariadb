@@ -1,5 +1,5 @@
 module.exports.routes = {
-    'GET /': 'DefaultController.index',
+    'GET /health': 'HealthCheckController.check',
     'POST /standard': 'StandardController.create',
     'GET /standard': 'StandardController.read',
     'GET /standard/:id': 'StandardController.readOne',
