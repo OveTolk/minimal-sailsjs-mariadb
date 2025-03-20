@@ -34,10 +34,10 @@ module.exports = {
     }
   },
 
-  // READ: Einen einzelnen Datensatz anhand des Query-Parameters abrufen
+  // READ: Einen einzelnen Datensatz anhand des URL-Parameters abrufen
   async readOne(req, res) {
     try {
-      const { id } = req.query; // ID kommt aus dem Query-Parameter
+      const { id } = req.params; // ID kommt aus dem URL-Parameter
       if (!id) {
         return res.badRequest('Fehlender Parameter: id ist erforderlich.');
       }
@@ -58,7 +58,8 @@ module.exports = {
   // UPDATE: Einen Datensatz aktualisieren
   async update(req, res) {
     try {
-      const { id, name, message } = req.body; // Variablen aus dem Body
+      const { id } = req.params; // ID kommt aus dem URL-Parameter
+      const { name, message } = req.body; // Name und message aus dem Body
       if (!id) {
         return res.badRequest('Fehlender Parameter: id ist erforderlich.');
       }
@@ -76,10 +77,10 @@ module.exports = {
     }
   },
 
-  // DELETE: Einen Datensatz löschen anhand des Query-Parameters
+  // DELETE: Einen Datensatz löschen anhand des URL-Parameters
   async delete(req, res) {
     try {
-      const { id } = req.query; // ID kommt aus dem Query-Parameter
+      const { id } = req.params; // ID kommt aus dem URL-Parameter
       if (!id) {
         return res.badRequest('Fehlender Parameter: id ist erforderlich.');
       }
