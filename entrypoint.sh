@@ -1,64 +1,61 @@
 #!/bin/bash
 set -e
 
-echo "Starting entrypoint script..."
+echo "Installiere globale Abhängigkeiten (sails, pm2)..."
+npm install -g sails pm2
 
-# Falls kein Sails-Projekt existiert, wird ein neues erstellt
+# Falls noch kein Sails-Projekt existiert, erstelle ein neues (ohne Frontend)
 if [ ! -f package.json ]; then
-  echo "No package.json found – creating a new Sails project..."
+  echo "Kein package.json gefunden – erstelle neues Sails-Projekt..."
   sails new . --no-frontend --force
 fi
 
 # Installiere den MySQL-Adapter
-echo "Installing sails-mysql..."
+echo "Installiere sails-mysql..."
 npm install sails-mysql --save --save-exact
 
-# Erstelle notwendige Verzeichnisse, falls sie nicht existieren
-mkdir -p api/models config config/env api/controllers
+# Erstelle notwendige Verzeichnisse
+mkdir -p api/controllers api/models config config/env
 
-# Warten, bis das Volume mit den Controllern verfügbar ist
-echo "Waiting for controllers folder..."
-while [ ! -d "/usr/src/app/api/controllers" ]; do
-    sleep 1
-done
-echo "Controllers folder is available."
+# Kopiere externe Controller (falls vorhanden)
+if [ -d /tmp/controllers ]; then
+  echo "Kopiere externe Controller von /tmp/controllers nach api/controllers..."
+  cp -R /tmp/controllers/* api/controllers/
+fi
 
-# Falls Controller im Volume vorhanden sind, werden sie kopiert
-if [ "$(ls -A /usr/src/app/api/controllers)" ]; then
-  echo "Copying controllers from volume..."
-  cp -r /usr/src/app/api/controllers/* /usr/src/app/tmp_controllers/
-  rm -rf /usr/src/app/api/controllers
-  mv /usr/src/app/tmp_controllers /usr/src/app/api/controllers
-else
-  echo "No controllers found, creating default controllers..."
-  mkdir -p /usr/src/app/api/controllers
+# Kopiere externe routes.js (falls vorhanden)
+if [ -f /tmp/routes.js ]; then
+  echo "Kopiere externe routes.js von /tmp nach config/routes.js..."
+  cp /tmp/routes.js config/routes.js
+fi
 
-  # Default Controller
-  cat <<EOF > /usr/src/app/api/controllers/DefaultController.js
+# --- Standard Controller ---
+if [ ! -f api/controllers/StandardController.js ]; then
+cat <<'EOF' > api/controllers/StandardController.js
+/**
+ * StandardController.js
+ *
+ * @description :: Controller für CRUD-Operationen auf der Standarddatenbank ohne Modell.
+ */
+
 module.exports = {
-  index: function(req, res) {
-    return res.json({ message: 'Sails.js is running.' });
-  }
-};
-EOF
-
-  # Standard Controller
-  cat <<EOF > /usr/src/app/api/controllers/StandardController.js
-module.exports = {
+  // CREATE: Neuen Datensatz anlegen
   async create(req, res) {
     try {
-      const sql = 'INSERT INTO standard (name, message) VALUES (?, ?)';
-      const values = [req.body.name, req.body.message];
-      const result = await sails.getDatastore().sendNativeQuery(sql, values);
-      return res.json({ id: result.insertId, ...req.body });
+      const sql = `INSERT INTO standard SET ?`;
+      const values = req.body;
+
+      const result = await sails.getDatastore().sendNativeQuery(sql, [values]);
+      return res.json({ id: result.insertId, ...values });
     } catch (err) {
       return res.serverError(err);
     }
   },
 
+  // READ: Alle Datensätze abrufen
   async read(req, res) {
     try {
-      const sql = 'SELECT * FROM standard';
+      const sql = `SELECT * FROM standard`;
       const result = await sails.getDatastore().sendNativeQuery(sql);
       return res.json(result.rows);
     } catch (err) {
@@ -66,13 +63,14 @@ module.exports = {
     }
   },
 
+  // READ: Einen Datensatz anhand der ID abrufen
   async readOne(req, res) {
     try {
-      const sql = 'SELECT * FROM standard WHERE id = ?';
+      const sql = `SELECT * FROM standard WHERE id = ?`;
       const result = await sails.getDatastore().sendNativeQuery(sql, [req.params.id]);
 
       if (result.rows.length === 0) {
-        return res.notFound('Record not found');
+        return res.notFound('Datensatz nicht gefunden');
       }
 
       return res.json(result.rows[0]);
@@ -81,32 +79,34 @@ module.exports = {
     }
   },
 
+  // UPDATE: Einen Datensatz aktualisieren
   async update(req, res) {
     try {
-      const sql = 'UPDATE standard SET name = ?, message = ? WHERE id = ?';
-      const values = [req.body.name, req.body.message, req.params.id];
-      const result = await sails.getDatastore().sendNativeQuery(sql, values);
+      const sql = `UPDATE standard SET ? WHERE id = ?`;
+      const values = req.body;
+      const result = await sails.getDatastore().sendNativeQuery(sql, [values, req.params.id]);
 
       if (result.affectedRows === 0) {
-        return res.notFound('Record not found');
+        return res.notFound('Datensatz nicht gefunden');
       }
 
-      return res.json({ id: req.params.id, ...req.body });
+      return res.json({ id: req.params.id, ...values });
     } catch (err) {
       return res.serverError(err);
     }
   },
 
+  // DELETE: Einen Datensatz löschen
   async delete(req, res) {
     try {
-      const sql = 'DELETE FROM standard WHERE id = ?';
+      const sql = `DELETE FROM standard WHERE id = ?`;
       const result = await sails.getDatastore().sendNativeQuery(sql, [req.params.id]);
 
       if (result.affectedRows === 0) {
-        return res.notFound('Record not found');
+        return res.notFound('Datensatz nicht gefunden');
       }
 
-      return res.json({ message: 'Record deleted successfully' });
+      return res.json({ message: 'Datensatz erfolgreich gelöscht' });
     } catch (err) {
       return res.serverError(err);
     }
@@ -115,19 +115,25 @@ module.exports = {
 EOF
 fi
 
-# Warten, bis das Volume mit den Routen verfügbar ist
-echo "Waiting for routes file..."
-while [ ! -f "/usr/src/app/config/routes.js" ]; do
-    sleep 1
-done
-echo "Routes file is available."
+# --- Default Controller ---
+if [ ! -f api/controllers/DefaultController.js ]; then
+cat <<'EOF' > api/controllers/DefaultController.js
+/**
+ * DefaultController.js
+ *
+ * @description :: Einfache Beispielaktion.
+ */
+module.exports = {
+  index: function(req, res) {
+    return res.json({ message: 'Hello, world! Sails.js läuft.' });
+  }
+};
+EOF
+fi
 
-# Falls routes.js im Volume vorhanden ist, wird es kopiert
-if [ -f "/usr/src/app/config/routes.js" ]; then
-  echo "Using provided routes.js file."
-else
-  echo "Creating default routes configuration..."
-  cat <<EOF > /usr/src/app/config/routes.js
+# --- Falls keine externe routes.js vorhanden, erstelle Standard-Routen-Konfiguration ---
+if [ ! -f config/routes.js ]; then
+cat <<'EOF' > config/routes.js
 module.exports.routes = {
   'GET /': 'DefaultController.index',
   'POST /standard': 'StandardController.create',
@@ -139,10 +145,43 @@ module.exports.routes = {
 EOF
 fi
 
-# Installiere Abhängigkeiten
-echo "Installing application dependencies..."
+# --- Datenbank-Konfiguration für Entwicklung ---
+cat <<'EOF' > config/datastores.js
+module.exports.datastores = {
+  default: {
+    adapter: 'sails-mysql',
+    url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
+  }
+};
+EOF
+
+# --- Produktions-Konfiguration ---
+cat <<'EOF' > config/env/production.js
+module.exports = {
+  models: {
+    // In Produktion sollte der Migrationsmodus "safe" sein.
+    migrate: 'safe'
+  },
+  datastores: {
+    default: {
+      adapter: 'sails-mysql',
+      url: 'mysql://sailsuser:sailspassword@mariadb:3306/sailsdb'
+    }
+  }
+};
+EOF
+
+# --- Session-Konfiguration ---
+if [ ! -f config/session.js ]; then
+cat <<'EOF' > config/session.js
+module.exports.session = {
+  secret: true
+};
+EOF
+fi
+
+echo "Installiere App-Abhängigkeiten..."
 npm install
 
-# Starte Sails.js mit PM2
-echo "Starting Sails.js with PM2..."
+echo "Starte Sails.js über PM2..."
 pm2-runtime start app.js
