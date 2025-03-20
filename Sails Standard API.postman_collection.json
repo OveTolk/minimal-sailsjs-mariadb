@@ -1,0 +1,180 @@
+{
+	"info": {
+		"_postman_id": "5ad645f2-0346-4f43-bb69-ae812d78580a",
+		"name": "Sails Standard API",
+		"description": "Collection zur Prüfung der CRUD-Endpunkte der Standard-Datenbank (Model Standard).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19418030"
+	},
+	"item": [
+		{
+			"name": "StandardController",
+			"item": [
+				{
+					"name": "Create Standard",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Max Mustermann\",\n  \"message\": \"Hi there, im using Whatsapp!\"\n}"
+						},
+						"url": {
+							"raw": "http://{{ipaddress}}:1337/standard",
+							"protocol": "http",
+							"host": [
+								"{{ipaddress}}"
+							],
+							"port": "1337",
+							"path": [
+								"standard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Standards",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{ipaddress}}:1337/standard",
+							"protocol": "http",
+							"host": [
+								"{{ipaddress}}"
+							],
+							"port": "1337",
+							"path": [
+								"standard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Standard by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{ipaddress}}:1337/standard/1",
+							"protocol": "http",
+							"host": [
+								"{{ipaddress}}"
+							],
+							"port": "1337",
+							"path": [
+								"standard",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Standard",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New name\",\n  \"message\": \"Updated message via Postman\"\n}"
+						},
+						"url": {
+							"raw": "http://{{ipaddress}}:1337/standard/1",
+							"protocol": "http",
+							"host": [
+								"{{ipaddress}}"
+							],
+							"port": "1337",
+							"path": [
+								"standard",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Standard",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{ipaddress}}:1337/standard/1",
+							"protocol": "http",
+							"host": [
+								"{{ipaddress}}"
+							],
+							"port": "1337",
+							"path": [
+								"standard",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "HealthCheck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{ipaddress}}:1337/health",
+					"protocol": "http",
+					"host": [
+						"{{ipaddress}}"
+					],
+					"port": "1337",
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "ipaddress",
+			"value": "127.0.0.1",
+			"type": "string"
+		}
+	]
+}

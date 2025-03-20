@@ -29,14 +29,14 @@ Eine minimal gehaltene CRUD API, die mit Sails.js entwickelt wurde. Sie unterst�
 ### Repository klonen:
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/OveTolk/minimal-sailsjs-mariadb.git
+cd minimal-sailsjs-mariadb
 ```
 
 ### Container starten:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### API aufrufen:
@@ -61,9 +61,6 @@ Die API ist nun unter [http://localhost:1337](http://localhost:1337) erreichbar.
 - `POST`: Einen neuen Datensatz erstellen
 - `PUT`: Einen bestehenden Datensatz aktualisieren
 - `DELETE`: Einen Datensatz löschen
-
-**Hinweis:** Für `DELETE` und `readOne` wird die ID als Query-Parameter übergeben, z. B.:  
-`/standard?id=1`
 
 ### Beispielanfrage (POST)
 
@@ -91,7 +88,26 @@ Weitere Beispiele zu den API-Endpunkten finden Sie in der Postman Collection.
 ## Postman Collection
 
 Eine Postman Collection zum Testen der API ist als `postman_collection.json` im Repository verfügbar.  
-Importieren Sie die Collection in Postman oder laden Sie sie direkt hier herunter.
+Importieren Sie die Collection in Postman und ändern Sie im **Parent Folder unter Variables** die **Variable für die IP-Adresse** des Servers, auf dem Docker läuft.
+
+## Wichtige Docker-Befehle
+
+### Logs anzeigen
+```bash
+docker logs sailsjs_container
+```
+
+### API aktualisieren
+```bash
+docker compose down
+git pull
+docker compose up -d
+```
+
+### Löschen aller Datenbanken (Achtung: unwiderruflich!)
+```bash
+docker compose down -v
+```
 
 ## Lizenz
 
