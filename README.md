@@ -16,6 +16,10 @@ Eine minimal gehaltene CRUD API, die mit Sails.js entwickelt wurde. Sie unterst�
 ### Docker Compose
 - Eine vollständig konfigurierte `docker-compose.yml` ermöglicht das sofortige Starten aller notwendigen Dienste.
 
+### Security
+- CORS standardmäßig aktiv -> über die docker-compose.yml konfigurierbar
+- CSRF standardmäßig aktiv
+
 ### Sofort verfügbar
 - Schnell startklar – einfach Container hochfahren und direkt loslegen.
 
@@ -36,12 +40,14 @@ cd minimal-sailsjs-mariadb
 ### Container starten:
 
 ```bash
+docker compose build
 docker compose up -d
 ```
 
 ### API aufrufen:
 
 Die API ist nun unter [http://localhost:1337](http://localhost:1337) erreichbar.
+Oder über die IP-Adresse des Hosts!
 
 ## Datenbankkonfiguration
 
@@ -49,6 +55,13 @@ Die API ist nun unter [http://localhost:1337](http://localhost:1337) erreichbar.
 - Die Standardkonfiguration für MariaDB und Sails.js ist bereits integriert.
 
 ## API Dokumentation
+
+### Endpunkt CSRF-Token
+**URL:**
+`http://localhost:1337/csrfToken`
+
+**Verfügbare Methoden:**
+- `GET`: Setzt in der Postman Collection den Token bzw. in der Web-App muss dann der CSRF-Token für alle POST / PUT / DELETE BEfehle gesetzt werden!
 
 ### Endpunkt: Standard
 
@@ -87,7 +100,7 @@ Weitere Beispiele zu den API-Endpunkten finden Sie in der Postman Collection.
 
 ## Postman Collection
 
-Eine Postman Collection zum Testen der API ist als `postman_collection.json` im Repository verfügbar.  
+Eine Postman Collection zum Testen der API ist als `Sails Standard API.postman_collection.json` im Repository verfügbar.  
 Importieren Sie die Collection in Postman und ändern Sie im **Parent Folder unter Variables** die **Variable für die IP-Adresse** des Servers, auf dem Docker läuft.
 
 ## Wichtige Docker-Befehle
@@ -101,6 +114,7 @@ docker logs sailsjs_container
 ```bash
 docker compose down
 git pull
+docker compose build
 docker compose up -d
 ```
 
