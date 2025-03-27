@@ -38,6 +38,7 @@ services:
   db-backup:
     build:
       context: ./backup
+      dockerfile: Dockerfile
     container_name: db_backup_container
     depends_on:
       - mariadb
