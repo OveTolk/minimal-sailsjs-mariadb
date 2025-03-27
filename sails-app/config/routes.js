@@ -1,4 +1,7 @@
 module.exports.routes = {
+    'GET /csrfToken': {
+    action: 'security/grant-csrf-token'
+    },
     'GET /health': {
       action: 'healthcheck/check',
       cors: {
