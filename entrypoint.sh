@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Installiere globale Abhängigkeiten (sails, pm2)..."
+echo "Installiere globale Abhängigkeiten..."
 npm install -g sails pm2
 
 # Falls noch kein Sails-Projekt existiert, erstelle ein neues (ohne Frontend)
@@ -33,122 +33,6 @@ fi
 if [ -f /tmp/security.js ]; then
   echo "Kopiere externe security.js von /tmp nach config/security.js..."
   cp /tmp/security.js config/security.js
-fi
-
-# --- Standard Controller ---
-if [ ! -f api/controllers/StandardController.js ]; then
-cat <<'EOF' > api/controllers/StandardController.js
-/**
- * StandardController.js
- *
- * @description :: Controller für CRUD-Operationen auf der Standarddatenbank ohne Modell.
- */
-
-module.exports = {
-  // CREATE: Neuen Datensatz anlegen
-  async create(req, res) {
-    try {
-      const sql = `INSERT INTO standard SET ?`;
-      const values = req.body;
-
-      const result = await sails.getDatastore().sendNativeQuery(sql, [values]);
-      return res.json({ id: result.insertId, ...values });
-    } catch (err) {
-      return res.serverError(err);
-    }
-  },
-
-  // READ: Alle Datensätze abrufen
-  async read(req, res) {
-    try {
-      const sql = `SELECT * FROM standard`;
-      const result = await sails.getDatastore().sendNativeQuery(sql);
-      return res.json(result.rows);
-    } catch (err) {
-      return res.serverError(err);
-    }
-  },
-
-  // READ: Einen Datensatz anhand der ID abrufen
-  async readOne(req, res) {
-    try {
-      const sql = `SELECT * FROM standard WHERE id = ?`;
-      const result = await sails.getDatastore().sendNativeQuery(sql, [req.params.id]);
-
-      if (result.rows.length === 0) {
-        return res.notFound('Datensatz nicht gefunden');
-      }
-
-      return res.json(result.rows[0]);
-    } catch (err) {
-      return res.serverError(err);
-    }
-  },
-
-  // UPDATE: Einen Datensatz aktualisieren
-  async update(req, res) {
-    try {
-      const sql = `UPDATE standard SET ? WHERE id = ?`;
-      const values = req.body;
-      const result = await sails.getDatastore().sendNativeQuery(sql, [values, req.params.id]);
-
-      if (result.affectedRows === 0) {
-        return res.notFound('Datensatz nicht gefunden');
-      }
-
-      return res.json({ id: req.params.id, ...values });
-    } catch (err) {
-      return res.serverError(err);
-    }
-  },
-
-  // DELETE: Einen Datensatz löschen
-  async delete(req, res) {
-    try {
-      const sql = `DELETE FROM standard WHERE id = ?`;
-      const result = await sails.getDatastore().sendNativeQuery(sql, [req.params.id]);
-
-      if (result.affectedRows === 0) {
-        return res.notFound('Datensatz nicht gefunden');
-      }
-
-      return res.json({ message: 'Datensatz erfolgreich gelöscht' });
-    } catch (err) {
-      return res.serverError(err);
-    }
-  }
-};
-EOF
-fi
-
-# --- Default Controller ---
-if [ ! -f api/controllers/DefaultController.js ]; then
-cat <<'EOF' > api/controllers/DefaultController.js
-/**
- * DefaultController.js
- *
- * @description :: Einfache Beispielaktion.
- */
-module.exports = {
-  index: function(req, res) {
-    return res.json({ message: 'Hello, world! Sails.js läuft.' });
-  }
-};
-EOF
-fi
-
-# --- Falls keine externe routes.js vorhanden, erstelle Standard-Routen-Konfiguration ---
-if [ ! -f config/routes.js ]; then
-cat <<'EOF' > config/routes.js
-module.exports.routes = {
-  'GET /': 'DefaultController.index',
-  'POST /standard': 'StandardController.create',
-  'GET /standard': 'StandardController.read',
-  'GET /standard/:id': 'StandardController.readOne',
-  'PUT /standard/:id': 'StandardController.update',
-  'DELETE /standard/:id': 'StandardController.delete'
-};
-EOF
 fi
 
 # --- Datenbank-Konfiguration für Entwicklung ---
