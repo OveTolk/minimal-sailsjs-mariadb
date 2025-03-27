@@ -1,6 +1,6 @@
 module.exports.routes = {
     'GET /health': {
-        action: 'HealthCheckController.check',
+        action: 'HealthCheckController/check',
         cors: {
           allowOrigins: process.env.CORS_ALLOW_ORIGINS ? process.env.CORS_ALLOW_ORIGINS.split(',') : '*',
           allowCredentials: false
