@@ -8,11 +8,11 @@ RUN npm install -g sails pm2
 RUN npm install sails-mysql --save
 
 # Copy package files and install dependencies
-COPY sails-app/package*.json ./
+COPY ./package*.json ./
 RUN npm install
 
 # Copy the rest of your app (assuming all code is in ./sails-app)
-COPY sails-app/ .
+COPY . .
 
 # Expose Sails default port
 EXPOSE 1337

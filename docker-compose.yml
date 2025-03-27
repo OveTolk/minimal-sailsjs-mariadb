@@ -18,7 +18,7 @@ services:
 
   sailsjs:
     build:
-      context: .
+      context: ./sails-app
       dockerfile: Dockerfile
     container_name: sailsjs_container
     restart: always
@@ -35,9 +35,21 @@ services:
       - SESSION_SECRET=mySuperSecretSessionKey
       - SESSION_HTTPS=false
       - DATABASE_URL=mysql://sailsuser:sailspassword@mariadb:3306/sailsdb
+  db-backup:
+    build:
+      context: ./backup
+      dockerfile: Dockerfile
+    container_name: db_backup_container
+    depends_on:
+      - mariadb
+    volumes:
+      - db-backups:/backups
+    networks:
+      - sailsnetwork
 
 volumes:
   mysql-data:
+  db-backups:
 
 networks:
   sailsnetwork:
