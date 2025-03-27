@@ -9,6 +9,10 @@
  * https://sailsjs.com/config/session
  */
 
+function parseBool(value) {
+  return value === 'true';
+}
+
 module.exports.session = {
 
   /***************************************************************************
@@ -20,7 +24,7 @@ module.exports.session = {
   ***************************************************************************/
   secret: '78b221a07c8417b7b83b5a9a158e40c7',
   cookie: {
-    secure: process.env.SESSION_HTTPS,         // Nur über HTTPS
+    secure: parseBool(process.env.SESSION_HTTPS),         // Nur über HTTPS
     httpOnly: true,       // Kein Zugriff über JavaScript
     sameSite: 'strict'    // Kein Cross-Origin Zugriff
   }  
