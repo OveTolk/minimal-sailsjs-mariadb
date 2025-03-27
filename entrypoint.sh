@@ -29,6 +29,12 @@ if [ -f /tmp/routes.js ]; then
   cp /tmp/routes.js config/routes.js
 fi
 
+# Kopiere externe routes.js (falls vorhanden)
+if [ -f /tmp/security.js ]; then
+  echo "Kopiere externe security.js von /tmp nach config/security.js..."
+  cp /tmp/security.js config/security.js
+fi
+
 # --- Standard Controller ---
 if [ ! -f api/controllers/StandardController.js ]; then
 cat <<'EOF' > api/controllers/StandardController.js
