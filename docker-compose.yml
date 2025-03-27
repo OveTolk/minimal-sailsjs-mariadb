@@ -17,19 +17,13 @@ services:
       - sailsnetwork
 
   sailsjs:
-    image: node:18
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: sailsjs_container
     restart: always
-    working_dir: /usr/src/app
-    volumes:
-      - ./sails-app:/usr/src/app
-      - ./controllers:/tmp/controllers  
-      - ./routes.js:/tmp/routes.js
-      - ./security.js:/tmp/security.js
-      - ./entrypoint.sh:/usr/src/app/entrypoint.sh
     ports:
       - "1337:1337"
-    command: sh /usr/src/app/entrypoint.sh
     depends_on:
       - mariadb
     networks:
@@ -38,10 +32,12 @@ services:
       - CORS_ALL_ROUTES=true
       - CORS_ALLOW_ORIGINS=http://localhost:3000,http://example.com
       - CSRF_ENABLED=true
+      - SESSION_SECRET=mySuperSecretSessionKey
+      - SESSION_HTTPS=false
+      - DATABASE_URL=mysql://sailsuser:sailspassword@mariadb:3306/sailsdb
 
 volumes:
   mysql-data:
-    driver: local
 
 networks:
   sailsnetwork:
