@@ -1,39 +1,44 @@
-/**
- * HealthCheckController.js
- *
- * @description :: Controller für einen Health Check, der den HTTP-Zugriff und die Verbindung zur Datenbank überprüft.
- */
-
 module.exports = {
-    async check(req, res) {
+    friendlyName: 'Check Health',
+    description: 'Überprüft HTTP-Zugriff und Datenbankverbindung.',
+    inputs: {},
+    exits: {
+      success: {
+        responseType: 'json',
+        description: 'HTTP und DB sind in Ordnung.'
+      },
+      error: {
+        responseType: 'serverError',
+        description: 'Fehler bei der DB-Verbindung.'
+      }
+    },
+    fn: async function (inputs, exits) {
       try {
-        // Führe einen einfachen Query aus, um die Datenbankverbindung zu prüfen
         const query = 'SELECT 1 AS result';
         const dbResponse = await sails.getDatastore().sendNativeQuery(query);
-  
         if (
           dbResponse &&
           dbResponse.rows &&
           dbResponse.rows.length > 0 &&
           dbResponse.rows[0].result === 1
         ) {
-          return res.json({
+          return exits.success({
             status: 'OK',
             message: 'HTTP und Datenbankverbindung sind in Ordnung.'
           });
         } else {
-          return res.status(500).json({
+          return exits.error({
             status: 'ERROR',
             message: 'Datenbank-Check fehlgeschlagen – unerwartetes Query-Ergebnis.'
           });
         }
       } catch (err) {
-        return res.status(500).json({
+        return exits.error({
           status: 'ERROR',
           message: 'Fehler bei der Verbindung zur Datenbank.',
           error: err.message
         });
       }
     }
-};
+  };
   
