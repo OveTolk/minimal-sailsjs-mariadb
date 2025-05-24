@@ -1,36 +1,36 @@
 # Sails.js Simple CRUD API
 
-Eine minimal gehaltene CRUD API, die mit Sails.js entwickelt wurde. Sie unterstützt MariaDB via SQL-Konfigurationsdateien, beinhaltet eine vorkonfigurierte Standardumgebung und ist sofort über Docker Compose einsatzbereit.
+A minimal CRUD API built with Sails.js that supports MariaDB via SQL configuration files, includes a preconfigured default environment, and is ready to run immediately with Docker Compose.
 
 ## Features
 
-### Einfache API
-- CRUD-Operationen (Create, Read, Update, Delete) für einen schnellen Einstieg in den API-Betrieb.
+### Simple API
+- Provides CRUD operations (Create, Read, Update, Delete) for a quick start with API development.
 
-### Datenbankkonfiguration per SQL
-- Die benötigten SQL-Dateien zur Einrichtung der Datenbankkonfigurationen befinden sich im Verzeichnis `./mysql-init`.
+### Database Configuration via SQL
+- SQL files for initializing the database configurations are located in the `./mysql-init` directory.
 
-### Standardkonfiguration bereits vorhanden
-- Vorinstallierte Konfigurationen für Sails.js und die Datenbank (MariaDB) sorgen für einen reibungslosen Start.
+### Preconfigured Defaults
+- Built-in configurations for Sails.js and MariaDB ensure a smooth setup process.
 
 ### Docker Compose
-- Eine vollständig konfigurierte `docker-compose.yml` ermöglicht das sofortige Starten aller notwendigen Dienste.
+- A fully configured `docker-compose.yml` file allows you to start all required services instantly.
 
 ### Security
-- CORS standardmäßig aktiv -> über die docker-compose.yml konfigurierbar
-- CSRF standardmäßig aktiv
+- CORS is enabled by default (configurable via `docker-compose.yml`).
+- CSRF protection is enabled by default.
 
-### Sofort verfügbar
-- Schnell startklar – einfach Container hochfahren und direkt loslegen.
+### Ready-to-use
+- Just start the containers and begin using the API immediately.
 
-## Voraussetzungen
+## Prerequisites
 
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ## Installation
 
-### Repository klonen:
+### Clone the repository::
 
 ```bash
 git clone https://github.com/OveTolk/minimal-sailsjs-mariadb.git
@@ -44,40 +44,39 @@ docker compose build
 docker compose up -d
 ```
 
-### API aufrufen:
+### Access the API:
 
-Die API ist nun unter [http://localhost:1337](http://localhost:1337) erreichbar.
-Oder über die IP-Adresse des Hosts!
+The API is now accessible at http://localhost:1337, or via your host machine's IP address.
 
-## Datenbankkonfiguration
+## Database Configuration
 
-- SQL-Dateien im Verzeichnis `./mysql-init` konfigurieren die Datenbank bei Container-Start.
-- Die Standardkonfiguration für MariaDB und Sails.js ist bereits integriert.
+- The SQL files in the `./mysql-init directory` configure the database on container startup.
+- Default configurations for MariaDB and Sails.js are already included.
 
-## API Dokumentation
+## API Documentation
 
-### Endpunkt CSRF-Token
+### CSRF Token Endpoint
 **URL:**
 `http://localhost:1337/csrfToken`
 
-**Verfügbare Methoden:**
-- `GET`: Setzt in der Postman Collection den Token bzw. in der Web-App muss dann der CSRF-Token für alle POST / PUT / DELETE BEfehle gesetzt werden!
+**Methods:**
+- `GET`: Retrieves the CSRF token. In Postman, this sets the token in your collection; in a web app, include this token in all POST, PUT, and DELETE requests.
 
-### Endpunkt: Standard
+### Standard Endpoint
 
 **URL:**  
 `http://localhost:1337/standard`
 
-**Verfügbare Methoden:**
+**Methods:**
 
-- `GET`: Alle Datensätze abrufen
-- `POST`: Einen neuen Datensatz erstellen
-- `PUT`: Einen bestehenden Datensatz aktualisieren
-- `DELETE`: Einen Datensatz löschen
+- `GET`: Retrieve all records.
+- `POST`: Create a new record.
+- `PUT`: Update an existing record.
+- `DELETE`: Delete a record.
 
-### Beispielanfrage (POST)
+### Example Request (POST)
 
-Verwenden Sie Postman oder cURL, um einen neuen Datensatz anzulegen:
+Use Postman or cURL to create a new record:
 
 #### JSON Request Body
 
@@ -88,7 +87,7 @@ Verwenden Sie Postman oder cURL, um einen neuen Datensatz anzulegen:
 }
 ```
 
-#### cURL Beispiel:
+#### cURL Example:
 
 ```bash
 curl -X POST http://localhost:1337/standard \
@@ -96,21 +95,20 @@ curl -X POST http://localhost:1337/standard \
   -d '{"name": "Test User", "message": "Hello from Postman"}'
 ```
 
-Weitere Beispiele zu den API-Endpunkten finden Sie in der Postman Collection.
+Further examples for the API endpoints can be found in the included Postman collection.
 
 ## Postman Collection
 
-Eine Postman Collection zum Testen der API ist als `Sails Standard API.postman_collection.json` im Repository verfügbar.  
-Importieren Sie die Collection in Postman und ändern Sie im **Parent Folder unter Variables** die **Variable für die IP-Adresse** des Servers, auf dem Docker läuft.
+A Postman collection for testing the API is available as Sails Standard `API.postman_collection.json` in the repository. Import the collection into Postman and update the Server IP variable in the Parent Folder > Variables section to match your Docker host's IP.
 
-## Wichtige Docker-Befehle
+## Important Docker Commands
 
-### Logs anzeigen
+### View Logs
 ```bash
 docker logs sailsjs_container
 ```
 
-### API aktualisieren
+### Update the API
 ```bash
 docker compose down
 git pull
@@ -118,16 +116,16 @@ docker compose build
 docker compose up -d
 ```
 
-### Löschen aller Datenbanken (Achtung: unwiderruflich!)
+### Remove All Databases (Warning: irreversible!)
 ```bash
 docker compose down -v
 ```
 
-## Lizenz
+## License
 
-Dieses Projekt ist unter der **MIT Lizenz** lizenziert.
+This project is licensed under the **MIT License**.
 
-## Kontakt und Mitwirkung
+## Contributing and Contact
 
-Haben Sie Fragen oder Verbesserungsvorschläge?  
-Eröffnen Sie bitte ein **Issue** oder senden Sie einen **Pull Request** – jede Rückmeldung ist willkommen!
+Have questions or suggestions?
+Please open an Issue or submit a Pull Request—all feedback is welcome!
